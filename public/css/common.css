@@ -1,0 +1,14 @@
+.item__auctions {
+  padding: 20px 0 0;
+}
+.item__auctions h6 {
+  margin-bottom: 0;
+}
+.map__item {
+  height: 200px;
+  background-image: url(https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Belarus_blank_map_with_districts_%28no_regional_cities%29.png/861px-Belarus_blank_map_with_districts_%28no_regional_cities%29.png);
+  -webkit-background-size: cover;
+  background-size: cover;
+  background-position: center center;
+  margin-bottom: 10px;
+}

@@ -1,0 +1,38 @@
+{# templates/Default/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1>Главная</h1>
+            </div>
+        </div>
+        <div class="row">
+            {% if auctions|length >1 %}
+                <div class="col"><h4 class="__pdt-20"><strong>Всего: {{ auctions|length }}</strong></h4></div>
+            {% endif %}
+        </div>
+        {% for item in auctions %}
+            <div class="item__auctions" data-id="{{ item.id }}">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="map__item">
+
+                        </div>
+                        <h6>{{ item.dateAndTime }}</h6>
+                        <strong>{{ item.reqion }}</strong>
+                    </div>
+                    <div class="col-8">
+                        <a href="{{ item.url }}"><h5>{{ item.title }}</h5></a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+{% block javascripts %}
+    <script type="text/javascript" src="{{ asset('js/auctions-loading.js') }}"></script>
+{% endblock %}
