@@ -13,12 +13,12 @@
         {% for item in auctions %}
             <div class="item__auctions" data-id="{{ item.id }}">
                 <div class="row">
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="map__item"></div>
                         <h6>{{ item.dateAndTime }}</h6>
                         <strong>{{ item.reqion }}</strong>
                     </div>
-                    <div class="col-8">
+                    <div class="col-6">
                         <a href="{{ item.url }}"><h5>{{ item.title }}</h5></a>
                     </div>
                 </div>

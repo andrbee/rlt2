@@ -9,13 +9,18 @@ $(document).ready(function () {
 		data: {
 			urls: urls
 		},
-		success: function (result) {
-			if(result.status == 'OK'){
-				$('#map').html(result.data['maps']);
-				$('#map .map').find('.maptitle').remove();
-				$('#map .map').find('br').remove();
-				$('#map').html($('#map .map'));
+		success: [
+			function (result) {
+				if(result.status === 'OK'){
+					var maps = result.data.maps;
+					$.each(maps,function (key,value) {
+						var mapItem = $('.map__item').eq(key);
+						mapItem.html($(value).find('.map').html());
+						mapItem.find('br').remove();
+						mapItem.find('.maptitle').remove();
+					});
+				}
 			}
-		}
+		]
 	});
 });

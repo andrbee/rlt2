@@ -25,7 +25,7 @@ class Auction
 		$crawler = new Crawler((string)$html);
 		$items = $crawler->filter('.preview');
 
-		$auctions = $items->each(function (Crawler $node, $i) {
+		$auctions = $items->each(function (Crawler $node) {
 			$title = $node->filter('.spanfield0');
 			$title = trim(str_replace($title->filter('strong')->text(), '', $title->text()));
 
@@ -59,7 +59,7 @@ class Auction
 		foreach ($urls as $url) {
 			$promises[] = $client->getAsync($url);
 		}
-		$results = \GuzzleHttp\Promise\unwrap($promises);
+		Promise\unwrap($promises);
 
 		// Wait for the requests to complete, even if some of them fail
 		$results = Promise\settle($promises)->wait();
@@ -68,12 +68,11 @@ class Auction
 			$html[] = (string) $item['value']->getBody();
 		}
 
-		return $html[0];
+		return $html;
 	}
 
 	public function getMaps($urls)
 	{
-		$crawler = new Crawler($this->getAuctions($urls));
 		return $this->getAuctions($urls);
 	}
 

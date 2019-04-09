@@ -5,7 +5,6 @@ namespace App\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Auction;
 
@@ -22,9 +21,10 @@ class AuctionController extends Controller
 
 		$auction = new Auction();
 		$auctions = $auction->getList();
+		$count = count($auctions);
 
 		return $this->render('auction/index.html.twig', [
-			'title' => 'Аукционы Минской области',
+			'title' => $count ? "{$count} аукционов найдено" : 'Нет аукционов в Минской области',
 			'auctions' => $auctions
 		]);
 	}
@@ -34,27 +34,24 @@ class AuctionController extends Controller
 	 */
 	public function ajaxMaps(Request $request)
 	{
-		if ($request->isXmlHttpRequest() && $request->get('urls')) {
+		$urls = $request->get('urls');
 
+		if ($request->isXmlHttpRequest() && $urls) {
 			$auction = new Auction();
-			$maps = $auction->getMaps($request->get('urls'));
+			$maps = $auction->getMaps($urls);
 
-//			return new Response($body, 200, [
-//				'Content-Type' => $results[0]['value']->getHeader('Content-Type')[0]
-//			]);
-			return new JsonResponse([
-					'status' => 'OK',
-					'data' => [
-						'maps' => $maps
-					]
+			$response = [
+				'status' => 'OK',
+				'data' => [
+					'maps' => $maps
 				]
-			);
+			];
 		} else {
-			return new JsonResponse([
-					'status' => 'ER',
-					'message' => 'Request is empty !'
-				]
-			);
+			$response = [
+				'status' => 'ER',
+				'message' => 'Request is empty !'
+			];
 		}
+		return new JsonResponse($response);
 	}
 }
