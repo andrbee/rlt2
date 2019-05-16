@@ -8,7 +8,6 @@
 
 namespace App\Entity;
 
-use GuzzleHttp\Promise;
 use GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -24,8 +23,9 @@ class Auction
 			$this->getParamsForAuctions());
 		$crawler = new Crawler((string)$html);
 		$items = $crawler->filter('.preview');
+		$list = [];
 
-		$auctions = $items->each(function (Crawler $node) {
+		$items->each(function (Crawler $node) use (&$urls, &$list) {
 			$title = $node->filter('.spanfield0');
 			$title = trim(str_replace($title->filter('strong')->text(), '', $title->text()));
 
@@ -39,7 +39,7 @@ class Auction
 			$url = $url->attr('href');
 			$id = str_replace('=', '', strstr($url, '='));
 
-			return array(
+			$list[$id] = array(
 				'title' => $title,
 				'dateAndTime' => $dateAndTime,
 				'reqion' => $region,
@@ -48,27 +48,88 @@ class Auction
 			);
 		});
 
+		return $this->getAuctions($list);
+	}
+
+	private function getAuctions($list)
+	{
+		$client = new Client();
+		$auctions = [];
+
+		foreach ($list as $id => $item) {
+			$response = $client->request('GET', $item['url']);
+
+			$auctions[$id] = $item;
+			$auctions[$id]['areas'] = $this->parseAuction((string)$response->getBody());
+		}
+
 		return $auctions;
 	}
 
-	public function getAuctions($urls)
+	private function parseAuction($content)
 	{
-		$client = new Client();
-		$promises = [];
+		$auction = null;
+		$idsArea = [];
 
-		foreach ($urls as $url) {
-			$promises[] = $client->getAsync($url);
+		$crawler = new Crawler($content);
+		$item = $crawler->filter('.descriptionOpisanie');
+
+		$header = 'tr:first-of-type';
+
+		$headerFields = $item->filter('table ' . $header . ' td')->each(function (Crawler $node) {
+			return str_replace('\r\n', '', trim($node->text()));
+		});
+
+		foreach ($headerFields as $key => $id) {
+			switch ($id) {
+				case '№ лота':
+					$idsArea[$key] = 'num';
+					break;
+				case 'Адрес земельного участка':
+					$idsArea[$key] = 'address';
+					break;
+				case 'Кадастровый номер земельного участка':
+					$idsArea[$key] = 'cadNum';
+					break;
+				case 'Площадь земельного участка, га':
+					$idsArea[$key] = 'areaValue';
+					break;
+				case 'Целевое назначение земельного участка':
+					$idsArea[$key] = 'goalPurpose';
+					break;
+				case 'Инженерная инфраструктура *':
+					$idsArea[$key] = 'infrastructure';
+					break;
+				case 'Расходы по подготовке документации для проведения аукциона, бел. руб.':
+					$idsArea[$key] = 'costPrepareDocs';
+					break;
+				case 'Начальная цена земельного участка, бел. руб.':
+					$idsArea[$key] = 'startPrice';
+					break;
+				case 'Сумма задатка, бел. руб.':
+					$idsArea[$key] = 'depositPrice';
+					break;
+				default:
+					$idsArea[$key] = $id;
+					break;
+			}
 		}
-		Promise\unwrap($promises);
 
-		// Wait for the requests to complete, even if some of them fail
-		$results = Promise\settle($promises)->wait();
-		$html = [];
-		foreach ($results as $item) {
-			$html[] = (string) $item['value']->getBody();
-		}
-
-		return $html;
+		$areas = $item->filter('table tr:not(' . $header . ')')->each(function (Crawler $node) use (&$idsArea) {
+			$area = [];
+			$node->filter('td')->each(function (Crawler $properties, $i) use (&$area, &$idsArea) {
+				$value = str_replace('\r\n', '', trim($properties->text()));
+				$value = in_array($idsArea[$i],
+					['depositPrice', 'startPrice', 'costPrepareDocs']) ? str_replace('&nbsp;',
+					'', htmlentities($value)) : $value;
+				$area[$idsArea[$i]] = $value;
+			});
+			return $area;
+		});
+		return [
+			'headerAreas' => $headerFields,
+			'areas' => $areas
+		];
 	}
 
 	public function getMaps($urls)
@@ -81,12 +142,6 @@ class Auction
 		$config = [
 			'form_params' => $postdata
 		];
-		if (getenv('USE_PROXY')) {
-			$config['proxy'] = [
-				'http' => getenv('HOST_PROXY'),
-				'https' => getenv('HOST_PROXY'),
-			];
-		}
 		$client = new Client();
 		$response = $client->request($format, $url, $config);
 		return $response->getBody();
@@ -94,7 +149,6 @@ class Auction
 
 	private function getParamsForAuctions()
 	{
-
 		return [
 			'select_name_table1' => 0,
 			'select_name_table1sub1' => 0,

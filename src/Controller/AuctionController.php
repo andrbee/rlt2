@@ -20,12 +20,12 @@ class AuctionController extends Controller
 	{
 
 		$auction = new Auction();
-		$auctions = $auction->getList();
-		$count = count($auctions);
-
+		$list = $auction->getList();
+		$count = count($list);
+		
 		return $this->render('auction/index.html.twig', [
 			'title' => $count ? "{$count} аукционов найдено" : 'Нет аукционов в Минской области',
-			'auctions' => $auctions
+			'auctions' => $list
 		]);
 	}
 
