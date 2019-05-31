@@ -17,6 +17,7 @@ class Auction
 	const URL_LIST_AUCTION = '/aukcion/search.php';
 	const HOST_PROXY = '192.168.15.240:3128';
 
+
 	public function getList()
 	{
 		$html = $this->guzzleRequest('POST', self::HOST_RESOURCE . self::URL_LIST_AUCTION,
@@ -24,8 +25,16 @@ class Auction
 		$crawler = new Crawler((string)$html);
 		$items = $crawler->filter('.preview');
 		$list = [];
-
-		$items->each(function (Crawler $node) use (&$urls, &$list) {
+		$token = 'bot853317968:AAGBxfOh9NioluhuZqj8PqyyAVdC3_OM0Jw';
+		$urlBot = 'https://api.telegram.org/' . $token . '/sendMessage';
+		$messageBot = '';
+//		$this->guzzleRequest('GET', $urlBot,
+//			[
+//				'chat_id' => 250678637,
+//				'photo' => 'https://dh.img.tyt.by/720x720s/n/avto/00/6/1664_m6_trassa_ograzhdenie_doroga_20190326_mag_tutby_phsl.jpg',
+//				'caption' => 'test description'
+//			]);
+		$items->each(function (Crawler $node) use (&$urls, &$urlBot, &$messageBot, &$list) {
 			$title = $node->filter('.spanfield0');
 			$title = trim(str_replace($title->filter('strong')->text(), '', $title->text()));
 
@@ -37,16 +46,26 @@ class Auction
 
 			$url = $node->filter('.spantable.link a');
 			$url = $url->attr('href');
+			$url = self::HOST_RESOURCE . $url;
 			$id = str_replace('=', '', strstr($url, '='));
 
+			$messageBot .= "<a href=\"{$url}\">{$title}</a>\n\n";
 			$list[$id] = array(
 				'title' => $title,
 				'dateAndTime' => $dateAndTime,
 				'reqion' => $region,
-				'url' => self::HOST_RESOURCE . $url,
+				'url' => $url,
 				'id' => $id
 			);
 		});
+
+		$this->guzzleRequest('GET', $urlBot,
+			[
+				'chat_id' => 250678637,
+				'parse_mode' => 'HTML',
+				'disable_web_page_preview' => true,
+				'text' => $messageBot
+			]);
 
 		return $this->getAuctions($list);
 	}

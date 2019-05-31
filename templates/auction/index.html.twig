@@ -22,6 +22,30 @@
                         <a href="{{ item.url }}"><h5>{{ item.title }}</h5></a>
                     </div>
                 </div>
+                {#<div class="row">#}
+                    {#<div class="col">#}
+                        {#{% if item.areas|length %}#}
+                            {#<table class="table-responsive-sm table-bordered">#}
+                                {#<thead>#}
+                                {#<tr>#}
+                                    {#{% for head in item.areas.headerAreas %}#}
+                                        {#<th scope="col">{{ head }}</th>#}
+                                    {#{% endfor %}#}
+                                {#</tr>#}
+                                {#</thead>#}
+                                {#<tbody>#}
+                                {#{% for area in item.areas.areas %}#}
+                                    {#<tr>#}
+                                        {#{% for field in area %}#}
+                                            {#<td>{{ field }}</td>#}
+                                        {#{% endfor %}#}
+                                    {#</tr>#}
+                                {#{% endfor %}#}
+                                {#</tbody>#}
+                            {#</table>#}
+                        {#{% endif %}#}
+                    {#</div>#}
+                {#</div>#}
             </div>
         {% endfor %}
         <div class="row"><div class="col"><div id="map" class="d-non"></div></div></div>
